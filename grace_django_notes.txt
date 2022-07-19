@@ -1,0 +1,197 @@
+*** install package
+> pip install django
+> python3.9 -m pip install django
+> python3.9 -m django --version
+
+*** Django commands
+> pwd
+  /Users/gracetzay/1Django
+> django-admin
+> django-admin startproject grace_django_project
+
+ls /Users/gracetzay/1Django/
+      grace_django_project
+      manage.py
+
+
+*** start webserver commands
+> python3.9 manage.py runserver
+> pwd
+  /Users/gracetzay/1Django/grace_django_project/
+> python3.9 manage.py startapp blog
+
+*** add route ( urls )
+visit http://127.0.0.1:8000/admin ---> urls.py
+urls.py for adding routes (URLs)
+visit http://127.0.0.1:8000/blog
+
+
+*** templates
+create templates directory.
+create a template/blog directory and two files
+    blog -> templates -> blog -> home.html, about.html
+Add to INSTALLED_APPS in settings.py, example:         <<<===
+    INSTALLED_APPS = [
+        'blog.apps.BlogConfig', # Grace add application
+
+  {% for post in posts %}
+       <h1>{{ post.title }} </h1>
+  {% endfor %}
+
+
+*** template inheritance, block (child can over-write)
+  base.html is the parent template
+  home.html extends base.html
+
+    {% extends "blog/base.html" %}
+    {% block content %}
+
+
+    {% endblock content %}
+
+*** static directory
+<project root>
+   blog/static
+            main.css
+       /templates
+
+1. in base.html line 1
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'blog/main.css' %}">
+
+*** don't hard code url, use   URL tag
+in blog/urls.py, we define url-patterns, use it in base.html
+urlpatterns = [
+    path('home/',  views.home,  name='blog-home'), # Home page
+    path('about/', views.about, name='blog-about'), # Home page
+]
+ File base.html
+ <a class="nav-item nav-link" href="{% url 'blog-home' %}">Home</a>
+
+*** access Admin webpage, create superuser
+> python3.9 manage.py createsuperuser
+Error: no such table: auth_user
+> python3.9 manage.py makemigrations # to make migration
+> python3.9 manage.py migrate
+> python3.9 manage.py createsuperuser
+> python3.9 manage.py makemigrations
+user1
+Test1234
+
+*** ORM (ObjectRelationModel), database models
+Models (Database)
+Run migration when database changes
+> python3.9 manage.py makemigrations # to make migration
+    Migrations for 'blog' is created
+      blog/migrations/0001_initial.py
+        - Create model Post
+> python3.9 manage.py sqlmigrate blog 0001
+    python3.9 manage.py makemigrations
+    Migrations for 'blog':
+      blog/migrations/0001_initial.py
+        - Create model Post
+    US-IT00785:grace_django_project gracetzay$ python3.9 manage.py sqlmigrate blog 0001
+    BEGIN;
+    --
+    -- Create model Post
+    --
+    CREATE TABLE "blog_post" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "title" varchar(100) NOT NULL, "content" text NOT NULL, "date_posted" datetime NOT NULL, "author_id" integer NOT NULL REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED);
+    CREATE INDEX "blog_post_author_id_dd7a8485" ON "blog_post" ("author_id");
+    COMMIT;
+> python3.9 manage.py migrate
+    Operations to perform:
+      Apply all migrations: admin, auth, blog, contenttypes, sessions
+    Running migrations:
+      Applying blog.0001_initial... OK
+> python3.9 manage.py shell
+
+    Python 3.9.13 (main, May 24 2022, 21:28:44)
+    [Clang 13.0.0 (clang-1300.0.29.30)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
+    (InteractiveConsole)
+    >>> from blog.models import Post
+    >>> from django.contrib.auth.models import User
+    >>> User.objects.all()
+    <QuerySet [<User: user1>, <User: tester1>]>
+    >>> User.objects.first()
+    <User: user1>
+    >>> User.objects.last()
+    <User: tester1>
+    >>> User.objects.filter(username='user1')
+    <QuerySet [<User: user1>]>
+    >>> User.objects.filter(username='user1').first()
+    <User: user1>
+    >>> user = objects.filter(username='user1').first()
+    Traceback (most recent call last):
+      File "<console>", line 1, in <module>
+    NameError: name 'objects' is not defined
+    >>> User.objects.filter(username='user1').first()
+    <User: user1>
+    >>> user = User.objects.filter(username='user1').first()
+    >>> user.id
+    1
+    >>> user.pk
+    1
+    >>> user = User.objects.get(id=1)
+    >>> print(user)
+    user1
+    >>> Post.objects.all()
+    <QuerySet []>
+    >>> post_1 = Post(title='Blog 1', content='First Post Content!', author=user)
+    >>> Post.objects.all()
+    <QuerySet []>
+    >>> # save to db
+    >>> post_1.save()
+    >>> Post.objects.all()
+    <QuerySet [<Post: Post object (1)>]>
+    >>> exit()
+
+    > python3.9 manage.py shell
+    >>> from blog.models import Post
+    >>> from django.contrib.auth.models import User
+    >>> Post.objects.all()
+    <QuerySet [<Post: Blog 1>]>
+    >>> user = User.objects.filter(username='user1')
+    >>> user = User.objects.filter(username='user1').first()
+    >>> print(user)
+    user1
+    >>> post_2 = Post(title='Blog 2', content='2nd Post content!', author_id=user.id)
+    >>> post_2.save()
+    >>> Post.objects.all()
+    <QuerySet [<Post: Blog 1>, <Post: Blog 2>]>
+    >>> post = Post.objects.first()
+    >>> post.content
+    'First Post Content!'
+    >>> post.date_posted
+    datetime.datetime(2022, 7, 19, 6, 30, 3, 125296, tzinfo=datetime.timezone.utc)
+    >>> post.author
+    <User: user1>
+    >>> post.author.email
+    'user1@gmail.com'
+    >>> #.modelname_set
+    >>> user.post_set
+    <django.db.models.fields.related_descriptors.create_reverse_many_to_one_manager.<locals>.RelatedManager object at 0x1037d6790>
+    >>> user.post_set.all()
+    <QuerySet [<Post: Blog 1>, <Post: Blog 2>]>
+    <django.db.models.fields.related_descriptors.create_reverse_many_to_one_manager.<locals>.RelatedManager object at 0x1037d6790>
+    >>> user.post_set.all()
+    <QuerySet [<Post: Blog 1>, <Post: Blog 2>]>
+    >>> user.post_set.create(title='Blog 3', content='3rd Content!')
+    <Post: Blog 3>
+    >>> Post.objects.all()
+    <QuerySet [<Post: Blog 1>, <Post: Blog 2>, <Post: Blog 3>]>
+
+    Date Format
+    { post.date_posted|date:"F d, Y" }} # July 19, 2022
+
+*** Register database Models to Admin page, use admin.py
+from django.contrib import admin
+from .models import Post
+
+admin.site.register(Post)
+
+
+
+
+
+
