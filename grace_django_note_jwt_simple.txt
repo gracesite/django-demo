@@ -1,0 +1,47 @@
+===>>> JWT Authentication
+https://www.youtube.com/watch?v=KLua_cYGLec
+https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#installation
+
+1: > pip install djangorestframework-simplejwt
+2: edit settings.py
+  REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+  }
+
+  from datetime import timedelta
+  SIMPLE_JWT = {
+        'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+        'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+        'AUTH_HEADER_TYPES': ('Bearer',),
+  }
+3. edit urls.py to add the following
+    from rest_framework_simplejwt.views import (
+        TokenObtainPairView,
+        TokenRefreshView,
+    )
+
+    urlpatterns = [
+        ...
+        path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+        path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+        ...
+    ]
+4. Start server then use Postman to test it
+    POST http://localhost:8000/api/token/   Note: need the / at the end.
+    Body select x-www-form-urlencoded
+        username:
+        password:
+    Auth
+        Type  No  Auth
+    ===> result from Postman
+    {"refresh":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY1ODkzODEwOSwiaWF0IjoxNjU4ODUxNzA5LCJqdGkiOiIwNDY3MTQ1NzM1OTg0Nzg0YThiYTZkOWY4Yzk1ZjJhYSIsInVzZXJfaWQiOjF9.-l0ko3-KDcvsPZZqQQEauAtQoYL92gfziVVZZB0gJQo",
+    "access":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODUyMDA5LCJpYXQiOjE2NTg4NTE3MDksImp0aSI6IjE4ZjJkZTUyYmM5MTQ2ZjlhY2ExMTU1YWI5NGUwNDFjIiwidXNlcl9pZCI6MX0.ihglR_onY90rg9VfvvOsCdpRWrbkqrna6mjZT1OKG-c"}
+
+    GET http://localhost:8000/post/1
+
+NOTE:  Another JWT package:
+  djangorestframework-jwt
+  In settings.py:
+    rest_framework_jwt.authenticaton.JSONWebTokenAuthentication
