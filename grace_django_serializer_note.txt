@@ -1,0 +1,35 @@
+===>>> Django serializer
+Web Application accepts JSON or XML format.  Django Data are in QuerySet.  We need Django Serializer to convert database QuerySet to Python dictionary so it can
+  be used by Web App.
+Example:
+1. edit blog/serializers.py
+  from rest_framework import serializers
+  from .models import Post
+  class UserSerializer(serializers.ModelSerializer)
+       class Meta:
+          model = User
+          fields = '__all__'
+          
+2. restart server
+  > python3.9  manage.py runserver
+
+3. run shell
+  > python3.9  manage.py shell
+
+>>> os.sytem('clear')  # to clear
+My Example:
+>>> from blog.serializers import PostSerializer
+>>> from blog.models import Post
+>>> from rest_framework.renderers import JSONRenderer
+>>> qs = Post.objects.all()
+>>> qs
+   <QuerySet [<Post: Blog 2>, <Post: Blog 3>, <Post: Blog 4>, <Post: Blog 5>, <Post: Blog 6>, <Post: Blog 7>]>
+>>> PostSerializer(qs)
+>>> s = PostSerializer(qs, many=True)
+>>> s.data
+    [OrderedDict([('id', 1), ('title', 'Blog 2'), ('content', '2nd Post content!'), ('date_posted', '2022-07-25T22:49:27.587082Z'), ('likes', 10), ('author', 1)]), OrderedDict([('id', 2), ('title', 'Blog 3'), ('content', '3rd Post content'), ('date_posted', '2022-07-25T22:51:58.430526Z'), ('likes', 10), ('author', 1)]), OrderedDict([('id', 3), ('title', 'Blog 4'), ('content', '4th Post content'), ('date_posted', '2022-07-25T22:52:18.608227Z'), ('likes', 10), ('author', 1)]), OrderedDict([('id', 4), ('title', 'Blog 5'), ('content', '5th Post content'), ('date_posted', '2022-07-25T22:52:37.907033Z'), ('likes', 10), ('author', 1)]), OrderedDict([('id', 5), ('title', 'Blog 6'), ('content', '6th Post content'), ('date_posted', '2022-07-25T22:52:55.268355Z'), ('likes', 10), ('author', 1)]), OrderedDict([('id', 6), ('title', 'Blog 7'), ('content', '7th Post content'), ('date_posted', '2022-07-25T22:53:23.277322Z'), ('likes', 10), ('author', 1)])]
+>>> json_data = JSONRenderer().render(s.data)
+>>> json_data
+b'[{"id":1,"title":"Blog 2","content":"2nd Post content!","date_posted":"2022-07-25T22:49:27.587082Z","likes":10,"author":1},{"id":2,"title":"Blog 3","content":"3rd Post content","date_posted":"2022-07-25T22:51:58.430526Z","likes":10,"author":1},{"id":3,"title":"Blog 4","content":"4th Post content","date_posted":"2022-07-25T22:52:18.608227Z","likes":10,"author":1},{"id":4,"title":"Blog 5","content":"5th Post content","date_posted":"2022-07-25T22:52:37.907033Z","likes":10,"author":1},{"id":5,"title":"Blog 6","content":"6th Post content","date_posted":"2022-07-25T22:52:55.268355Z","likes":10,"author":1},{"id":6,"title":"Blog 7","content":"7th Post content","date_posted":"2022-07-25T22:53:23.277322Z","likes":10,"author":1}]'
+
+Now json_data can be used by the Web Application to display
